@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app import models, schemas, database
+from app.utils import hash_password
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     new_user = models.User(
         username=user.username,
         email=user.email,
-        password=user.password # later we change it to hashed
+        password=hash_password(user.password) # later we change it to hashed
     )
     db.add(new_user)
     db.commit()
