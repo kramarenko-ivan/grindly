@@ -1,11 +1,11 @@
+# FastAPI app
+
 from fastapi import FastAPI
+from app.routes import auth
+from app.database import Base, engine
+
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return { "message": "Hello, Grindly!" }
-
-@app.post("/register")
-def register(user: dict):
-    return { "status": "registered", "user": user}
+app.include_router(auth.router)
