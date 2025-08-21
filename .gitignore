@@ -1,0 +1,33 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.venv/
+venv/
+.env
+*.env
+
+# Node/Vue
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Docker
+*.log
+*.pid
+*.swp
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
