@@ -23,4 +23,4 @@ class Habit(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # connect with user
-    users = relationship("User", back_populates="habits")
+    user = relationship("User", back_populates="habits")
