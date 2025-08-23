@@ -38,9 +38,9 @@ def update_habit(habit_id: int, habit: schemas.HabitUpdate, db: Session = Depend
     return db_habit
     
 # delete habit
-@router.delete("/habits/{habit_id}", response_model=schemas.HabitResponse)
+@router.delete("/habits/{habit_id}")
 def delete_habit(habit_id: int, db: Session = Depends(database.get_db)):
     db_habit = habits.delete_habit(db, habit_id)
     if not db_habit: 
         raise HTTPException(status_code=404, detail="Habit not found")
-    return db_habit
+    return { "detail": "Habit deleted" }
