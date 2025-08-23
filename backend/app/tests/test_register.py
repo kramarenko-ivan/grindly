@@ -1,6 +1,7 @@
+from collections.abc import Mapping
+import uuid
 from fastapi.testclient import TestClient
 from app.main import app
-import uuid
 
 client = TestClient(app)
 
@@ -18,18 +19,12 @@ def test_create_user():
     assert data["email"] == random_email
     assert "id" in data
 
-def  test_create_duplicate_user():
-    # create user
-    client.post("/register", json = {
-        "username": "duplicate",
-        "email": "duplicate@example.com",
-        "password": "password123"
-    })
+def  test_create_duplicate_user(test_user: Mapping[str, str]):
 
     # create user again with same credentials
     response = client.post("/register", json = {
-        "username": "duplicate",
-        "email": "duplicate@example.com",
+        "username": test_user["username"],
+        "email": test_user["email"],
         "password": "password123"
     })
 
