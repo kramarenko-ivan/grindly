@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from app.models import Habit
 from app.schemas import HabitCreate, HabitUpdate
 
-def create_habit(db: Session, habit: HabitCreate, user_id: int):
-    db_habit = Habit(**habit.model_dump(), user_id=user_id)
+def create_habit(db: Session, habit: HabitCreate):
+    db_habit = Habit(**habit.model_dump())
     db.add(db_habit)
     db.commit()
     db.refresh(db_habit)

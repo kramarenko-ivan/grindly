@@ -10,8 +10,8 @@ router = APIRouter()
 
 # create habit
 @router.post("/habits", response_model=schemas.HabitResponse)
-def create_habit(habit: schemas.HabitCreate, user_id: int, db: Session = Depends(database.get_db)):
-    return habits.create_habit(db, habit, user_id)
+def create_habit(habit: schemas.HabitCreate, db: Session = Depends(database.get_db)):
+    return habits.create_habit(db, habit)
 
 # read all habits by user
 @router.get("/habits", response_model=List[schemas.HabitResponse])
