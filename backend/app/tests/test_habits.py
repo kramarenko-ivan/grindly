@@ -75,5 +75,5 @@ def test_delete_habit(test_user: Mapping[str, str]):
     assert delete_response.json()["detail"] == "Habit deleted"
 
     # checking that habit is deleted
-    get_response = client.get(f'/habits/{habit_id}')
+    get_response = client.get(f"/habits/{habit_id}?user_id={test_user['id']}")
     assert get_response.status_code == 404
