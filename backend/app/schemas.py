@@ -22,7 +22,9 @@ class HabitBase(BaseModel):
     description: Optional[str] = None
 
 class HabitCreate(BaseModel):
-    pass
+    title: str
+    description: Optional[str] = None
+    user_id: int
 
 class HabitUpdate(BaseModel):
     title: Optional[str] = None
