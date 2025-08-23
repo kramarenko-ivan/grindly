@@ -14,7 +14,7 @@ def create_habit(habit: schemas.HabitCreate, db: Session = Depends(database.get_
     db_habit = habits.create_habit(db, habit)
     if not db_habit:
         raise HTTPException(status_code=404, detail="User not found")
-    return 
+    return db_habit
 
 # read all habits by user
 @router.get("/habits", response_model=List[schemas.HabitResponse])
