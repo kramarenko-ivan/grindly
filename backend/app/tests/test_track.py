@@ -88,4 +88,7 @@ def test_delete_track(
     get_response = client.get(
         f"/track/{track_id}?user_id={test_user['id']}&habit_id={habit['id']}"
     )
-    assert all(t["id"] != track_id for t in get_response.json())
+    assert get_response.status_code == 200
+    tracks = get_response.json()
+
+    assert all(t["id"] != track_id for t in tracks)
