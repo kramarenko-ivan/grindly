@@ -26,6 +26,13 @@ def read_tracks(
     return track.get_tracks(db, user_id, habit_id)
 
 
+@router.get("/track", response_model=schemas.TrackResponse)
+def read_track(track_id: int, user_id: int, db: Session = Depends(database.get_db)):
+    db_track = track.get_track(db, track_id, user_id)
+    if not db_track:
+        raise HTTPException(status_code=404, detail="Track not found")
+
+
 @router.delete("/track/{track_id}")
 def delete_track(track_id: int, user_id: int, db: Session = Depends(database.get_db)):
     db_track = track.delete_track(db, track_id=track_id, user_id=user_id)

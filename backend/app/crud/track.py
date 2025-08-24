@@ -27,6 +27,14 @@ def get_tracks(db: Session, user_id: int, habit_id: int | None = None):
     return query.all()
 
 
+def get_track(db: Session, track_id: int, user_id: int):
+    return (
+        db.query(HabitTrack)
+        .filter(HabitTrack.id == track_id, HabitTrack.user_id == user_id)
+        .first()
+    )
+
+
 def delete_track(db: Session, track_id: int, user_id: int):
     db_track = (
         db.query(HabitTrack)

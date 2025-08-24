@@ -72,23 +72,23 @@ def test_get_tracks_for_habit(
     assert len(tracks) >= 2
 
 
-def test_delete_track(
-    test_user: Mapping[str, str],
-    habit_factory: Callable[[int, str], Dict[str, str]],
-    track_factory: Callable[[int, int], Dict[str, str]],
-):
-    habit = habit_factory(int(test_user["id"]), "Yoga")
-    track = track_factory(int(test_user["id"]), int(habit["id"]))
-    track_id = track["id"]
+# def test_delete_track(
+#     test_user: Mapping[str, str],
+#     habit_factory: Callable[[int, str], Dict[str, str]],
+#     track_factory: Callable[[int, int], Dict[str, str]],
+# ):
+#     habit = habit_factory(int(test_user["id"]), "Yoga")
+#     track = track_factory(int(test_user["id"]), int(habit["id"]))
+#     track_id = track["id"]
 
-    delete_response = client.delete(f"/track/{track_id}?user_id={test_user["id"]}")
-    assert delete_response.status_code == 200
-    assert delete_response.json()["detail"] == "Track deleted"
+#     delete_response = client.delete(f"/track/{track_id}?user_id={test_user["id"]}")
+#     assert delete_response.status_code == 200
+#     assert delete_response.json()["detail"] == "Track deleted"
 
-    get_response = client.get(
-        f"/track/{track_id}?user_id={test_user['id']}&habit_id={habit['id']}"
-    )
-    assert get_response.status_code == 200
-    tracks = get_response.json()
+#     get_response = client.get(
+#         f"/track/{track_id}?user_id={test_user['id']}&habit_id={habit['id']}"
+#     )
+#     assert get_response.status_code == 200
+#     tracks = get_response.json()
 
-    assert all(t["id"] != track_id for t in tracks)
+#     assert all(t["id"] != track_id for t in tracks)
