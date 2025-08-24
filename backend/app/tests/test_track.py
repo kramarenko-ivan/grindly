@@ -85,6 +85,6 @@ def test_delete_track(
     assert delete_response.status_code == 200
     assert delete_response.json()["detail"] == "Track deleted"
 
-    get_response = client.get(f"/track?track_id={track_id}&user_id={test_user['id']}")
+    get_response = client.get(f"/track/track_id={track_id}&user_id={test_user['id']}")
     assert get_response.status_code == 404
     assert get_response.json()["detail"] == "Track not found"
