@@ -1,0 +1,22 @@
+# Virtual environments
+.venv
+venv
+env
+
+# Caches and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local databases
+*.db
+
+# Git
+.git
+.gitignore
+
+# IDE and editors
+.vscode
+.idea
+*.swp

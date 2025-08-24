@@ -14,29 +14,30 @@ on:
             - develop
 
 jobs:
-    test:
+    test-and-run:
         runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                python-version: [ 3.12 ]
-
         steps:
-            - uses: actions/checkout@v3
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v4
-              with:
-                python-version: ${{ matrix.python-version }}
+            - name: Checkout code
+              uses: actions/checkout@v3
             
-            - name: Install dependencies
+            - name: Build Docker image
               run: |
-                python -m pip install --upgrade pip
-                pip install -r backend/requirements.txt
+                docker build -t grindly-backend ./backend
 
-            - name: Set PYTHONPATH
-              run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/backend/app" >> $GITHUB_ENV
-
-            - name: Run tests
-              working-directory: backend
+            - name: Run tests and app in one container
               run: |
-                pytest app/tests
+                # Run container in the background
+                docker run -d --name grindly-backend-test grindly-backend
+
+                # Run tests inside the container
+                docker exec grindly-backend-test python -m pytest -s app/tests
+
+                # Check the base endpoint of the app
+                sleep 5
+                docker exec grindly-backend-test curl http://localhost:8000/docs
+
+                # Stop and remove container
+                docker stop grindly-backend-test
+                docker rm grindly-backend-test
+
