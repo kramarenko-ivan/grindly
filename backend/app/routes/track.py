@@ -26,7 +26,7 @@ def read_tracks(
     return track.get_tracks(db, user_id, habit_id)
 
 
-@router.get("/track{track_id}", response_model=schemas.TrackResponse)
+@router.get("/track/{track_id}", response_model=schemas.TrackResponse)
 def read_track(track_id: int, user_id: int, db: Session = Depends(database.get_db)):
     db_track = track.get_track(db, track_id, user_id)
     if not db_track:
