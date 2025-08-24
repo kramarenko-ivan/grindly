@@ -88,3 +88,9 @@ def test_delete_track(
     get_response = client.get(f"/track/{track_id}?user_id={test_user['id']}")
     assert get_response.status_code == 404
     assert get_response.json()["detail"] == "Track not found"
+
+
+def test_delete_nonexistent_track(test_user: Mapping[str, str]):
+    response = client.delete(f"/track/9999?user_id={test_user['id']}")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Track not found"
