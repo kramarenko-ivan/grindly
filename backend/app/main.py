@@ -1,7 +1,7 @@
 # FastAPI app
 
 from fastapi import FastAPI
-from app.routes import auth, habits
+from app.routes import auth, habits, track
 from app.database import Base, engine
 
 # Create tables
@@ -12,3 +12,4 @@ app = FastAPI()
 # Include routers
 app.include_router(auth.router)
 app.include_router(habits.router)
+app.include_router(track.router)
