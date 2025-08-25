@@ -41,6 +41,7 @@ jobs:
                 docker exec grindly-backend-test curl http://localhost:8000/docs
 
                 # Stop and remove container
+                docker logs grindly-backend-test
                 docker stop grindly-backend-test
                 docker rm grindly-backend-test
 
