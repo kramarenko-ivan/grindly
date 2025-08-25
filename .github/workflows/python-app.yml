@@ -17,6 +17,9 @@ jobs:
     test-and-run:
         runs-on: ubuntu-latest
 
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
@@ -28,7 +31,7 @@ jobs:
             - name: Run tests and app in one container
               run: |
                 # Run container in the background
-                docker run -d --name grindly-backend-test grindly-backend
+                docker run -d --name grindly-backend-test --env DATABASE_URL=$DATABASE_URL grindly-backend
 
                 # Run tests inside the container
                 docker exec grindly-backend-test python -m pytest -s app/tests

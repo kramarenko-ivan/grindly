@@ -6,3 +6,7 @@ save:
 	pip freeze > requirements.txt
 start:
 	.venv\Scripts\activate && uvicorn app.main:app --reload
+migrate:
+	.venv\Scripts\python -m alembic revision --autogenerate -m "init schema"
+upgrade:
+	.venv\Scripts\python -m alembic upgrade head
