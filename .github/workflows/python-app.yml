@@ -31,17 +31,6 @@ jobs:
             - name: Run tests and app in one container
               run: |
                 # Run container in the background
-                docker run -d --name grindly-backend-test --env DATABASE_URL=$DATABASE_URL grindly-backend
-
-                # Run tests inside the container
-                docker exec grindly-backend-test python -m pytest -s app/tests
-
-                # Check the base endpoint of the app
-                sleep 5
-                docker exec grindly-backend-test curl http://localhost:8000/docs
-
-                # Stop and remove container
-                docker logs grindly-backend-test
-                docker stop grindly-backend-test
-                docker rm grindly-backend-test
+                docker run --rm --env DATABASE_URL=$DATABASE_URL grindly-backend \
+                bash -c "python -m pytest -s app/tests && curl http://localhost:8000/docs"
 
