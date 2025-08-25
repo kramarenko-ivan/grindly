@@ -1,0 +1,62 @@
+# ----------------------------
+# Auto normalize line endings
+# ----------------------------
+* text=auto
+
+# Scripts
+*.sh text eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# ----------------------------
+# Project code
+# ----------------------------
+# Python
+*.py text eol=lf
+
+# TypeScript / JS / Vue
+*.ts text eol=lf
+*.js text eol=lf
+*.vue text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+
+# ----------------------------
+# Lock files
+# ----------------------------
+package-lock.json merge=ours
+yarn.lock merge=ours
+pnpm-lock.yaml merge=ours
+
+# ----------------------------
+# Binary files
+# ----------------------------
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.tar.gz binary
+*.pdf binary
+
+# ----------------------------
+# Docker and infrastructure
+# ----------------------------
+*.dockerfile text eol=lf
+*.tf text eol=lf
+*.tfvars text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# ----------------------------
+# Exceptions
+# ----------------------------
+# Terraform binary lock files
+*.tfstate binary
+*.tfstate.backup binary
+*.tfplan binary
+*.tfvars.json binary
