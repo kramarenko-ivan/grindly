@@ -43,7 +43,7 @@
 
             # Apply Alembic migrations inside the container
             echo "===== Applying Alembic migrations ====="
-            docker exec grindly-backend-test alembic upgrade head || true
+            docker exec --env PYTHONPATH=/app grindly-backend-test alembic upgrade head || true
 
             # Show logs after migrations
             echo "===== Logs after migrations ====="
