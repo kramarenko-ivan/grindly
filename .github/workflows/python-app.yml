@@ -47,7 +47,7 @@ jobs:
 
           # Check if the /docs endpoint is reachable
           echo "===== Checking /docs endpoint ====="
-          docker exec grindly-backend-test curl -f http://localhost:8000/docs || true
+          docker exec grindly-backend-test curl -f http://localhost:8000/openapi.json || true
 
           # Show logs after running tests
           echo "===== Logs after tests ====="
