@@ -1,0 +1,65 @@
+# ----------------------------
+# Python / Backend
+# ----------------------------
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.venv/
+venv/
+.envs/
+.env
+*.env
+.pytest_cache/
+
+# ----------------------------
+# Node / Vue / Frontend
+# ----------------------------
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Cypress (если используешь e2e тесты)
+cypress/videos/
+cypress/screenshots/
+
+# TypeScript
+*.tsbuildinfo
+
+# ----------------------------
+# Docker / Misc
+# ----------------------------
+*.pid
+*.swp
+
+# ----------------------------
+# IDE / Editor
+# ----------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ----------------------------
+# OS files
+# ----------------------------
+.DS_Store
+Thumbs.db
