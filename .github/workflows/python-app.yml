@@ -1,58 +1,66 @@
-name: Grindly
+  name: Grindly
 
-on:
-  push:
-    branches:
-      - main
-      - feature/*
-      - refactor/*
-  pull_request:
-    branches: 
-      - main
-      - feature/*
-      - refactor/*
-      - develop
+  on:
+    push:
+      branches:
+        - main
+        - feature/*
+        - refactor/*
+    pull_request:
+      branches: 
+        - main
+        - feature/*
+        - refactor/*
+        - develop
 
-jobs:
-  test-and-run:
-    runs-on: ubuntu-latest
+  jobs:
+    test-and-run:
+      runs-on: ubuntu-latest
 
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
 
-      - name: Build Docker image
-        run: |
-          # Build the Docker image for the backend
-          docker build -t grindly-backend ./backend
+        - name: Build Docker image
+          run: |
+            # Build the Docker image for the backend
+            docker build -t grindly-backend ./backend
 
-      - name: Run tests and capture logs
-        run: |
-          # Start the container in detached mode
-          docker run -d --name grindly-backend-test --env DATABASE_URL=$DATABASE_URL grindly-backend
+        - name: Run tests and capture logs
+          run: |
+            # Start the container in detached mode
+            docker run -d --name grindly-backend-test --env DATABASE_URL=$DATABASE_URL grindly-backend
 
-          # Wait for uvicorn to start
-          sleep 5
+            # Wait for uvicorn to start
+            sleep 5
 
-          # Show logs before running tests
-          echo "===== Logs before tests ====="
-          docker logs grindly-backend-test || true
+            # Show logs before migrations
+            echo "===== Logs before migrations ====="
+            docker logs grindly-backend-test || true
 
-          # Run pytest inside the container
-          echo "===== Running pytest ====="
-          docker exec grindly-backend-test python -m pytest -s app/tests || true
+            # Apply Alembic migrations inside the container
+            echo "===== Applying Alembic migrations ====="
+            docker exec grindly-backend-test alembic upgrade head || true
 
-          # Check if the /docs endpoint is reachable
-          echo "===== Checking /docs endpoint ====="
-          docker exec grindly-backend-test curl -f http://localhost:8000/openapi.json || true
+            # Show logs after migrations
+            echo "===== Logs after migrations ====="
+            docker logs grindly-backend-test || true
 
-          # Show logs after running tests
-          echo "===== Logs after tests ====="
-          docker logs grindly-backend-test || true
+            # Run pytest inside the container
+            echo "===== Running pytest ====="
+            docker exec grindly-backend-test python -m pytest -s app/tests || true
 
-          # Stop and remove the container
-          docker stop grindly-backend-test
-          docker rm grindly-backend-test
+            # Check if the /openapi.json endpoint is reachable
+            echo "===== Checking /openapi.json endpoint ====="
+            docker exec grindly-backend-test curl -f http://localhost:8000/openapi.json || true
+
+            # Show logs after running tests
+            echo "===== Logs after tests ====="
+            docker logs grindly-backend-test || true
+
+            # Stop and remove the container
+            docker stop grindly-backend-test
+            docker rm grindly-backend-test
