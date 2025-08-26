@@ -8,8 +8,7 @@
     <!-- Habits list -->
     <ul v-if="habits.length > 0">
       <li v-for="habit in habits" :key="habit.id">
-        {{ habit.title }}
-        {{ habit.description }}
+        <span @click="startEdit(habit)">{{ habit.title }} - {{ habit.description }}</span>
         <button @click="removeHabit(habit.id)">X</button>
       </li>
     </ul>
@@ -17,12 +16,13 @@
     <div v-else-if="!loading && !error">No habits yet.</div>
 
     <!-- Add habit form -->
-    <div class="add-habit">
-      <input v-model="newTitle" placeholder="Habit title" />
-      <input v-model="newDescription" placeholder="Description (optional)" />
-      <button @click="addHabit" :disabled="adding">
-        {{ adding ? 'Adding...' : 'Add habit' }}
+    <div class="habit-form">
+      <input v-model="titleInput" placeholder="Habit title" />
+      <input v-model="descriptionInput" placeholder="Description (optional)" />
+      <button @click="editingHabitId ? saveHabit() : addHabit()" :disabled="adding">
+        {{ editingHabitId ? 'Save habit' : adding ? 'Adding...' : 'Add habit' }}
       </button>
+      <button v-if="editingHabitId" @click="cancelEdit()">Cancel</button>
     </div>
   </div>
 </template>
@@ -45,8 +45,9 @@ export default defineComponent({
     const error = ref('');
     const adding = ref(false);
 
-    const newTitle = ref('');
-    const newDescription = ref('');
+    const editingHabitId = ref<number | null>(null);
+    const titleInput = ref('');
+    const descriptionInput = ref('');
 
     const fetchHabits = async () => {
       loading.value = true;
@@ -78,7 +79,7 @@ export default defineComponent({
     };
 
     const addHabit = async () => {
-      if (!newTitle.value.trim()) {
+      if (!titleInput.value.trim()) {
         error.value = 'Title is required';
         return;
       }
@@ -89,12 +90,12 @@ export default defineComponent({
       try {
         const response = await axios.post('http://localhost:8000/habits', {
           user_id: 12,
-          title: newTitle.value,
-          description: newDescription.value,
+          title: titleInput.value,
+          description: descriptionInput.value,
         });
         habits.value.push(response.data);
-        newTitle.value = '';
-        newDescription.value = '';
+        titleInput.value = '';
+        descriptionInput.value = '';
       } catch (err: unknown) {
         const axiosError = err as AxiosError<{ detail?: string }>;
         error.value = axiosError.response?.data?.detail || 'Failed to add habit';
@@ -103,11 +104,57 @@ export default defineComponent({
       }
     };
 
+    const saveHabit = async () => {
+      if (!titleInput.value.trim()) {
+        error.value = 'Title is required';
+        return;
+      }
+
+      try {
+        const response = await axios.put(`http://localhost:8000/habits/${editingHabitId.value}`, {
+          user_id: 12,
+          title: titleInput.value,
+          description: descriptionInput.value,
+        });
+        const index = habits.value.findIndex((h) => h.id === editingHabitId.value);
+        if (index !== -1) habits.value[index] = response.data;
+        cancelEdit();
+      } catch (err: unknown) {
+        const axiosError = err as AxiosError<{ detail?: string }>;
+        error.value = axiosError.response?.data?.detail || 'Failed to add habit';
+      }
+    };
+
+    const cancelEdit = async () => {
+      editingHabitId.value = null;
+      titleInput.value = '';
+      descriptionInput.value = '';
+    };
+
+    const startEdit = async (habit: Habit) => {
+      editingHabitId.value = habit.id;
+      titleInput.value = habit.title;
+      descriptionInput.value = habit.description || '';
+    };
+
     onMounted(() => {
       fetchHabits();
     });
 
-    return { habits, loading, error, newTitle, newDescription, adding, addHabit, removeHabit };
+    return {
+      habits,
+      loading,
+      error,
+      editingHabitId,
+      titleInput,
+      descriptionInput,
+      adding,
+      addHabit,
+      removeHabit,
+      startEdit,
+      saveHabit,
+      cancelEdit,
+    };
   },
 });
 </script>
