@@ -1,6 +1,11 @@
 <template>
   <form @submit.prevent="submitForm" class="login-form">
     <div>
+      <label for="username">Username:</label>
+      <input id="username" v-model="username" type="text" required />
+    </div>
+
+    <div>
       <label for="email">Email:</label>
       <input id="email" v-model="email" type="email" required />
     </div>
@@ -26,6 +31,7 @@ import axios from "axios";
 export default defineComponent({
   name: "LoginForm",
   setup() {
+    const username = ref("");
     const email = ref("");
     const password = ref("");
     const loading = ref(false);
@@ -40,11 +46,12 @@ export default defineComponent({
       try {
         const response = await axios.post(
           "http://localhost:8000/register",
-          { email: email.value, password: password.value }
+          { username: username.value, email: email.value, password: password.value }
         );
 
         if (response.status === 200) {
           success.value = true;
+          username.value = "";
           email.value = "";
           password.value = "";
         }
@@ -55,7 +62,7 @@ export default defineComponent({
       }
     };
 
-    return { email, password, loading, error, success, submitForm };
+    return { username, email, password, loading, error, success, submitForm };
   },
 });
 </script>
