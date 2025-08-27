@@ -37,19 +37,19 @@ jobs:
 
           # Show logs before migrations
           echo "===== Logs before migrations ====="
-          docker logs grindly-backend-test || true
+          docker logs grindly-backend-test
 
           # Apply Alembic migrations inside the container
           echo "===== Applying Alembic migrations ====="
-          docker exec --env PYTHONPATH=/app grindly-backend-test alembic upgrade head || true
+          docker exec --env PYTHONPATH=/app grindly-backend-test alembic upgrade head || exit 1
 
           # Show logs after migrations
           echo "===== Logs after migrations ====="
-          docker logs grindly-backend-test || true
+          docker logs grindly-backend-test
 
           # Run pytest inside the container
           echo "===== Running pytest ====="
-          docker exec grindly-backend-test python -m pytest -s app/tests || true
+          docker exec grindly-backend-test python -m pytest -s app/tests || exit 1
 
           # Check if the /openapi.json endpoint is reachable
           echo "===== Checking /openapi.json endpoint ====="
@@ -57,11 +57,12 @@ jobs:
             echo "✅ openapi.json endpoint is reachable"
           else
             echo "❌ openapi.json endpoint is not reachable"
+            exit 1
           fi
 
           # Show logs after running tests
           echo "===== Logs after tests ====="
-          docker logs grindly-backend-test || true
+          docker logs grindly-backend-test
 
           # Stop and remove the container
           docker stop grindly-backend-test
