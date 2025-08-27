@@ -19,7 +19,6 @@ if DATABASE_URL.startswith("sqlite"):
 engine = create_engine(
     DATABASE_URL,
     connect_args=connect_args,  # work for SQLite
-    echo=True,  # convenient for logs
 )
 
 # Session
