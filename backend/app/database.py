@@ -7,21 +7,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "sqlite:///./test.db"
-)  # fallback for local testing
+# Taking URL from .env, fallback for SQLite
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
+# connect_args only for SQLite
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+# Engine
+engine = create_engine(
+    DATABASE_URL,
+    connect_args=connect_args,  # work for SQLite
+    echo=True,  # convenient for logs
+)
+
+# Session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Base for models
 Base = declarative_base()
 
 
-# Dependency
+# Dependency for FastAPI
 def get_db():
     db = SessionLocal()
     try:
