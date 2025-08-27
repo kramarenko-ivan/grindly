@@ -7,7 +7,7 @@ def test_login_success(factory: TestFactory):
     user = factory.create_user()
 
     response = client.post(
-        "/auth/login",
+        "/login",
         data={
             "username": user["username"],
             "password": "password123",
@@ -31,7 +31,7 @@ def test_login_success(factory: TestFactory):
 def test_login_invalid_password(factory: TestFactory):
     user = factory.create_user()
     response = client.post(
-        "/auth/login", data={"username": user["username"], "password": "wrongpass"}
+        "/login", data={"username": user["username"], "password": "wrongpass"}
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid username or password"
@@ -39,7 +39,7 @@ def test_login_invalid_password(factory: TestFactory):
 
 def test_login_nonexistent_user():
     response = client.post(
-        "/auth/login", data={"username": "nonexistent", "password": "password123"}
+        "/login", data={"username": "nonexistent", "password": "password123"}
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid username or password"
