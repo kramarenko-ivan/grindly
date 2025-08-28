@@ -1,6 +1,9 @@
 <template>
   <div class="habits-view">
-    <h1>Your Habits</h1>
+    <div class="habits-header">
+      <h1>Your Habits</h1>
+      <button class="logout-btn" @click="logout">Logout</button>
+    </div>
 
     <div v-if="loading">Loading habits...</div>
     <div v-if="error" class="error">{{ error }}</div>
@@ -31,6 +34,9 @@
 import { getUserId } from '@/utils/auth';
 import axios, { AxiosError } from 'axios';
 import { defineComponent, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 interface Habit {
   id: number;
@@ -148,6 +154,12 @@ export default defineComponent({
       descriptionInput.value = habit.description || '';
     };
 
+    const logout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user_id');
+      router.push('/');
+    };
+
     onMounted(fetchHabits);
 
     return {
@@ -163,12 +175,32 @@ export default defineComponent({
       startEdit,
       saveHabit,
       cancelEdit,
+      logout,
     };
   },
 });
 </script>
 
 <style scoped>
+.habits-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  background-color: #39a6ff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+}
+.logout-btn:hover {
+  background-color: #359cf0;
+}
+
 .habits-view {
   max-width: 400px;
   margin: 50px auto;
