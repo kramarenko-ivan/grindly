@@ -9,8 +9,15 @@
 
     <!-- Email (always required) -->
     <div>
-      <label for="email">Email:</label>
-      <input id="email" v-model="email" type="email" required />
+      <label :for="isLogin ? 'login' : 'email'">
+        {{ isLogin ? 'Username or Email:' : 'Email:' }}
+      </label>
+      <input
+        :id="isLogin ? 'login' : 'email'"
+        v-model="loginField"
+        :type="isLogin ? 'text' : 'email'"
+        required
+      />
     </div>
 
     <div>
@@ -39,12 +46,14 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import axios, { AxiosError } from 'axios';
+import type { LoginPayload, RegisterPayload, TokenResponse } from '@/types/auth';
+import qs from 'qs';
 
 export default defineComponent({
   name: 'LoginForm',
   setup() {
     const username = ref('');
-    const email = ref('');
+    const loginField = ref(''); // username or email
     const password = ref('');
     const loading = ref(false);
     const error = ref('');
@@ -55,6 +64,9 @@ export default defineComponent({
       isLogin.value = !isLogin.value;
       error.value = '';
       success.value = false;
+      username.value = '';
+      loginField.value = '';
+      password.value = '';
     };
 
     const submitForm = async () => {
@@ -63,27 +75,41 @@ export default defineComponent({
       loading.value = true;
 
       try {
-        const endpoint = isLogin.value
-          ? 'http://localhost:8000/login'
-          : 'http://localhost:8000/register';
-        const payload = isLogin.value
-          ? {
-              email: email.value,
-              password: password.value,
-            }
-          : {
-              username: username.value,
-              email: email.value,
-              password: password.value,
-            };
+        if (isLogin.value) {
+          // Login through form-urlencoded
+          const payload: LoginPayload = {
+            username: loginField.value, // can be username or email
+            password: password.value,
+          };
 
-        const response = await axios.post(endpoint, payload);
+          const response = await axios.post<TokenResponse>(
+            'http://localhost:8000/login',
+            qs.stringify(payload),
+            {
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            },
+          );
 
-        if (response.status === 200) {
-          success.value = true;
-          username.value = '';
-          email.value = '';
-          password.value = '';
+          if (response.status === 200) {
+            success.value = true;
+            loginField.value = '';
+            password.value = '';
+          }
+        } else {
+          // Register through JSON
+          const payload: RegisterPayload = {
+            username: username.value,
+            email: loginField.value, // can be username or email
+            password: password.value,
+          };
+
+          const response = await axios.post('http://localhost:8000/register', payload);
+          if (response.status === 200) {
+            success.value = true;
+            username.value = '';
+            loginField.value = '';
+            password.value = '';
+          }
         }
       } catch (err: unknown) {
         const axiosError = err as AxiosError<{ detail?: string }>;
@@ -93,7 +119,17 @@ export default defineComponent({
       }
     };
 
-    return { username, email, password, loading, error, success, isLogin, toggleMode, submitForm };
+    return {
+      username,
+      loginField,
+      password,
+      loading,
+      error,
+      success,
+      isLogin,
+      toggleMode,
+      submitForm,
+    };
   },
 });
 </script>
