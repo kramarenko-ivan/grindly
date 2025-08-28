@@ -7,9 +7,9 @@
 
     <!-- Habits list -->
     <ul v-if="habits.length > 0">
-      <li v-for="habit in habits" :key="habit.id">
+      <li v-for="habit in habits" :key="habit.id" class="habit-item">
         <span @click="startEdit(habit)">{{ habit.title }} - {{ habit.description }}</span>
-        <button @click="removeHabit(habit.id)">X</button>
+        <button class="remove-btn" @click="removeHabit(habit.id)">X</button>
       </li>
     </ul>
 
@@ -50,7 +50,6 @@ export default defineComponent({
     const titleInput = ref('');
     const descriptionInput = ref('');
 
-    // Unique function for get user_id and error get
     const getCurrentUserId = (): string | null => {
       const user_id = getUserId();
       if (!user_id) {
@@ -66,12 +65,8 @@ export default defineComponent({
       error.value = '';
       try {
         const user_id = getCurrentUserId();
-        if (!user_id) {
-          return;
-        }
-        const response = await axios.get('http://localhost:8000/habits', {
-          params: { user_id },
-        });
+        if (!user_id) return;
+        const response = await axios.get('http://localhost:8000/habits', { params: { user_id } });
         habits.value = response.data;
       } catch (err: unknown) {
         const axiosError = err as AxiosError<{ detail?: string }>;
@@ -84,17 +79,12 @@ export default defineComponent({
     const removeHabit = async (habitId: number) => {
       try {
         const user_id = getCurrentUserId();
-        if (!user_id) {
-          return;
-        }
-        await axios.delete(`http://localhost:8000/habits/${habitId}`, {
-          params: { user_id },
-        });
-        // After remove, we are update list
+        if (!user_id) return;
+        await axios.delete(`http://localhost:8000/habits/${habitId}`, { params: { user_id } });
         habits.value = habits.value.filter((h) => h.id !== habitId);
       } catch (err: unknown) {
         const axiosError = err as AxiosError<{ detail?: string }>;
-        error.value = axiosError.response?.data?.detail || 'Failed to load habits';
+        error.value = axiosError.response?.data?.detail || 'Failed to remove habit';
       }
     };
 
@@ -103,15 +93,11 @@ export default defineComponent({
         error.value = 'Title is required';
         return;
       }
-
       adding.value = true;
       error.value = '';
-
       try {
         const user_id = getCurrentUserId();
-        if (!user_id) {
-          return;
-        }
+        if (!user_id) return;
         const response = await axios.post('http://localhost:8000/habits', {
           user_id,
           title: titleInput.value,
@@ -133,12 +119,9 @@ export default defineComponent({
         error.value = 'Title is required';
         return;
       }
-
       try {
         const user_id = getCurrentUserId();
-        if (!user_id) {
-          return;
-        }
+        if (!user_id) return;
         const response = await axios.put(`http://localhost:8000/habits/${editingHabitId.value}`, {
           user_id,
           title: titleInput.value,
@@ -149,7 +132,7 @@ export default defineComponent({
         cancelEdit();
       } catch (err: unknown) {
         const axiosError = err as AxiosError<{ detail?: string }>;
-        error.value = axiosError.response?.data?.detail || 'Failed to add habit';
+        error.value = axiosError.response?.data?.detail || 'Failed to update habit';
       }
     };
 
@@ -165,9 +148,7 @@ export default defineComponent({
       descriptionInput.value = habit.description || '';
     };
 
-    onMounted(() => {
-      fetchHabits();
-    });
+    onMounted(fetchHabits);
 
     return {
       habits,
@@ -189,12 +170,60 @@ export default defineComponent({
 
 <style scoped>
 .habits-view {
-  max-width: 600px;
+  max-width: 400px;
   margin: 50px auto;
-  padding: 1rem;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.habits-view h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.habit-form input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+
+.habit-form button {
+  padding: 0.75rem;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.habit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.remove-btn {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
 }
 
 .error {
   color: red;
+  text-align: center;
+}
+
+.habit-form {
+  display: flex;
+  flex-direction: column;
 }
 </style>
