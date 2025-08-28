@@ -5,6 +5,9 @@ on:
     branches: 
       - main
 
+env:
+  SERVICE_NAME: my-app
+
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
@@ -18,12 +21,20 @@ jobs:
         with:
           python-version: 3.12
 
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('/backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
       - name: Run tests
         working-directory: backend
-        run: PYTHONPATH=./ pytest
+        run: PYTHONPATH=. pytest
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
@@ -39,15 +50,15 @@ jobs:
         run: gcloud auth configure-docker --quiet
 
       - name: Build Docker image
-        run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app:$GITHUB_SHA ./backend
+        run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA ./backend
 
       - name: Push Docker image
-        run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app:$GITHUB_SHA
+        run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy my-app \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app:$GITHUB_SHA \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
             --region europe-west1 \
             --platform managed \
             --allow-unauthenticated
