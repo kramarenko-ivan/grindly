@@ -23,6 +23,8 @@ MarkupSafe==3.0.2
 packaging==25.0
 passlib==1.7.4
 pluggy==1.6.0
+prometheus-fastapi-instrumentator==7.1.0
+prometheus_client==0.22.1
 psycopg==3.2.9
 psycopg-binary==3.2.9
 pyasn1==0.6.1

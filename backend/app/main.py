@@ -4,11 +4,15 @@ from fastapi import FastAPI
 from app.routes import auth, habits, track
 from app.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+# Connect instrumentator
+Instrumentator().instrument(app).expose(app)
 
 app.add_middleware(
     CORSMiddleware,
