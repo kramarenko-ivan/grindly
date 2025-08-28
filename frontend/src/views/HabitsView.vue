@@ -71,7 +71,8 @@ export default defineComponent({
       try {
         const user_id = getCurrentUserId();
         if (!user_id) return;
-        const response = await axios.get('http://localhost:8000/habits', { params: { user_id } });
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const response = await axios.get(`${apiUrl}/habits`, { params: { user_id } });
         habits.value = response.data;
       } catch (err: unknown) {
         const axiosError = err as AxiosError<{ detail?: string }>;
@@ -85,7 +86,8 @@ export default defineComponent({
       try {
         const user_id = getCurrentUserId();
         if (!user_id) return;
-        await axios.delete(`http://localhost:8000/habits/${habitId}`, { params: { user_id } });
+        const apiUrl = import.meta.env.VITE_API_URL;
+        await axios.delete(`${apiUrl}/habits/${habitId}`, { params: { user_id } });
         habits.value = habits.value.filter((h) => h.id !== habitId);
       } catch (err: unknown) {
         const axiosError = err as AxiosError<{ detail?: string }>;
@@ -103,7 +105,8 @@ export default defineComponent({
       try {
         const user_id = getCurrentUserId();
         if (!user_id) return;
-        const response = await axios.post('http://localhost:8000/habits', {
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const response = await axios.post(`${apiUrl}/habits`, {
           user_id,
           title: titleInput.value,
           description: descriptionInput.value,
@@ -127,7 +130,8 @@ export default defineComponent({
       try {
         const user_id = getCurrentUserId();
         if (!user_id) return;
-        const response = await axios.put(`http://localhost:8000/habits/${editingHabitId.value}`, {
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const response = await axios.put(`${apiUrl}/habits/${editingHabitId.value}`, {
           user_id,
           title: titleInput.value,
           description: descriptionInput.value,

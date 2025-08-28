@@ -90,8 +90,9 @@ export default defineComponent({
             password: password.value,
           };
 
+          const apiUrl = import.meta.env.VITE_API_URL;
           const response = await axios.post<TokenResponse>(
-            'http://localhost:8000/login',
+            `${apiUrl}/login`,
             qs.stringify(payload),
             {
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -120,7 +121,8 @@ export default defineComponent({
             password: password.value,
           };
 
-          const response = await axios.post('http://localhost:8000/register', payload);
+          const apiUrl = import.meta.env.VITE_API_URL;
+          const response = await axios.post(`${apiUrl}/register`, payload);
           if (response.status === 200) {
             success.value = true;
             username.value = '';
