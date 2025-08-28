@@ -53,7 +53,7 @@ jobs:
 
           # Check if the /openapi.json endpoint is reachable
           echo "===== Checking /openapi.json endpoint ====="
-          if docker exec grindly-backend-test curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/openapi.json | grep -q "200"; then
+          if docker exec grindly-backend-test curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/openapi.json | grep -q "200"; then
             echo "✅ openapi.json endpoint is reachable"
           else
             echo "❌ openapi.json endpoint is not reachable"
