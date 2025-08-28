@@ -47,7 +47,13 @@
 import { defineComponent, ref } from 'vue';
 import axios, { AxiosError } from 'axios';
 import type { LoginPayload, RegisterPayload, TokenResponse } from '@/types/auth';
+import { useRouter } from 'vue-router';
 import qs from 'qs';
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  sub: string;
+}
 
 export default defineComponent({
   name: 'LoginForm',
@@ -59,6 +65,8 @@ export default defineComponent({
     const error = ref('');
     const success = ref(false);
     const isLogin = ref(false);
+
+    const router = useRouter();
 
     const toggleMode = () => {
       isLogin.value = !isLogin.value;
@@ -91,9 +99,18 @@ export default defineComponent({
           );
 
           if (response.status === 200) {
+            const token = response.data.access_token;
+            localStorage.setItem('token', token); // save token
+
+            const decoded = jwtDecode<JwtPayload>(token);
+            localStorage.setItem('user_id', decoded.sub);
+
             success.value = true;
             loginField.value = '';
             password.value = '';
+
+            // Move on page HabitsView
+            router.push({ name: 'HabitsView' });
           }
         } else {
           // Register through JSON

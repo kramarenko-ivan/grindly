@@ -10,7 +10,7 @@ const routes = [
   },
   {
     path: "/habits",
-    name: "Habits",
+    name: "HabitsView",
     component: HabitsView
   }
 ]

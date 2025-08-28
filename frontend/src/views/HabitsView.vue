@@ -28,6 +28,7 @@
 </template>
 
 <script lang="ts">
+import { getUserId } from '@/utils/auth';
 import axios, { AxiosError } from 'axios';
 import { defineComponent, ref, onMounted } from 'vue';
 
@@ -49,12 +50,27 @@ export default defineComponent({
     const titleInput = ref('');
     const descriptionInput = ref('');
 
+    // Unique function for get user_id and error get
+    const getCurrentUserId = (): string | null => {
+      const user_id = getUserId();
+      if (!user_id) {
+        error.value = 'User not logged in';
+        loading.value = false;
+        return null;
+      }
+      return user_id;
+    };
+
     const fetchHabits = async () => {
       loading.value = true;
       error.value = '';
       try {
+        const user_id = getCurrentUserId();
+        if (!user_id) {
+          return;
+        }
         const response = await axios.get('http://localhost:8000/habits', {
-          params: { user_id: 12 },
+          params: { user_id },
         });
         habits.value = response.data;
       } catch (err: unknown) {
@@ -67,8 +83,12 @@ export default defineComponent({
 
     const removeHabit = async (habitId: number) => {
       try {
+        const user_id = getCurrentUserId();
+        if (!user_id) {
+          return;
+        }
         await axios.delete(`http://localhost:8000/habits/${habitId}`, {
-          params: { user_id: 12 },
+          params: { user_id },
         });
         // After remove, we are update list
         habits.value = habits.value.filter((h) => h.id !== habitId);
@@ -88,8 +108,12 @@ export default defineComponent({
       error.value = '';
 
       try {
+        const user_id = getCurrentUserId();
+        if (!user_id) {
+          return;
+        }
         const response = await axios.post('http://localhost:8000/habits', {
-          user_id: 12,
+          user_id,
           title: titleInput.value,
           description: descriptionInput.value,
         });
@@ -111,8 +135,12 @@ export default defineComponent({
       }
 
       try {
+        const user_id = getCurrentUserId();
+        if (!user_id) {
+          return;
+        }
         const response = await axios.put(`http://localhost:8000/habits/${editingHabitId.value}`, {
-          user_id: 12,
+          user_id,
           title: titleInput.value,
           description: descriptionInput.value,
         });
@@ -125,13 +153,13 @@ export default defineComponent({
       }
     };
 
-    const cancelEdit = async () => {
+    const cancelEdit = () => {
       editingHabitId.value = null;
       titleInput.value = '';
       descriptionInput.value = '';
     };
 
-    const startEdit = async (habit: Habit) => {
+    const startEdit = (habit: Habit) => {
       editingHabitId.value = habit.id;
       titleInput.value = habit.title;
       descriptionInput.value = habit.description || '';
