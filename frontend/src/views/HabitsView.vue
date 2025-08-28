@@ -36,8 +36,6 @@ import axios, { AxiosError } from 'axios';
 import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
-
 interface Habit {
   id: number;
   title: string;
@@ -47,6 +45,7 @@ interface Habit {
 export default defineComponent({
   name: 'HabitsView',
   setup() {
+    const router = useRouter();
     const habits = ref<Habit[]>([]);
     const loading = ref(false);
     const error = ref('');
