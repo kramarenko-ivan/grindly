@@ -55,7 +55,8 @@ jobs:
       - name: Push Docker image
         run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
 
-      - name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run (without frontend URL)
+        id: deploy-backend
         run: |
           gcloud run deploy my-app \
             --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
@@ -64,26 +65,38 @@ jobs:
             --allow-unauthenticated
 
       - name: Get Cloud Run URL
-        id: get-url
+        id: get-backend-url
         run: |
-          echo "url=$(gcloud run services describe my-app --region europe-west1 --format 'value(status.url)')" >> $GITHUB_OUTPUT
+          echo "BACKEND_URL=$(gcloud run services describe my-app --region europe-west1 --format 'value(status.url)')" >> $GITHUB_ENV
 
       - name: Install Vercel CLI
         run: npm install -g vercel@46.1.0
 
-      - name: Set Vercel Env Var and Trigger Deployment
+      - name: Deploy Frontend and get URL
+        id: deploy-frontend
         run: |
-          set -e # Stop at any error
+          FRONTEND_JSON=$(vercel --prod --token $VERCEL_TOKEN --confirm --json)
+          FRONTEND_URL=$(echo "$FRONTEND_JSON" | jq -r '.[0].url')
+          echo "FRONTEND_URL=https://$FRONTEND_URL" >> $GITHUB_ENV
 
-          echo "Removing existing VITE_API_URL (if exists)..."
+      - name: Update Backend CORS dynamically
+        run: |
+          echo "Redeploy backend with dynamic FRONTEND_URL for CORS..."
+          gcloud run deploy my-app \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
+            --region europe-west1 \
+            --platform managed \
+            --allow-unauthenticated \
+            --update-env-vars FRONTEND_URL=$FRONTEND_URL
+        env:
+          FRONTEND_URL: ${{ env.FRONTEND_URL }}
+
+      - name: Update Vercel API URL
+        run: |
+          echo "Setting VITE_API_URL in Vercel..."
           vercel env rm VITE_API_URL production --yes --token $VERCEL_TOKEN || true
+          echo "$BACKEND_URL" | vercel env add VITE_API_URL production --token $VERCEL_TOKEN
 
-          echo "Adding new variable VITE_API_URL..."
-          echo "${{ steps.get-url.outputs.url }}" | vercel env add VITE_API_URL production --token $VERCEL_TOKEN --debug
-
-          # Trigger frontend production-build..."
-          vercel --prod --token $VERCEL_TOKEN --confirm --debug
-        
         env: 
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

@@ -1,5 +1,6 @@
 # FastAPI app
 
+import os
 from fastapi import FastAPI
 from app.routes import auth, habits, track
 from app.database import Base, engine
@@ -14,9 +15,13 @@ app = FastAPI()
 # Connect instrumentator
 Instrumentator().instrument(app).expose(app)
 
+frontend_url = os.environ.get(
+    "FRONTEND_URL", "http://localhost:5173"
+)  # fallback for local network
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # vite frontend
+    allow_origins=[frontend_url],  # dynamic origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
