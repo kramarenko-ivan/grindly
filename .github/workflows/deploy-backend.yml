@@ -73,18 +73,19 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@46.1.0
 
-      - name: Set Vercel Env Var and Deploy Frontend
+      - name: Deploy Frontend with updated BACKEND_URL
         run: |
           set -e
 
-          echo "Removing existing VITE_API_URL (if exists)..."
+          # Удаляем старую переменную на фронтенде
           vercel env rm VITE_API_URL production --yes --token $VERCEL_TOKEN || true
 
-          echo "Adding new VITE_API_URL..."
+          # Добавляем актуальный URL бэкенда
           echo "$BACKEND_URL" | vercel env add VITE_API_URL production --token $VERCEL_TOKEN
 
-          echo "Deploying frontend to production..."
-          vercel --prod --token $VERCEL_TOKEN --confirm
+          # Деплой фронтенда
+          FRONTEND_URL=$(vercel --prod --token $VERCEL_TOKEN --confirm --yes | grep "https://" | head -n1)
+          echo "FRONTEND_URL=$FRONTEND_URL" >> $GITHUB_ENV
 
         env:
           BACKEND_URL: ${{ steps.get-backend-url.outputs.url }}
@@ -94,7 +95,7 @@ jobs:
 
       - name: Update Backend CORS dynamically
         run: |
-          echo "Redeploy backend with dynamic FRONTEND_URL for CORS..."
+          echo "Redeploy backend with FRONTEND_URL for CORS..."
           gcloud run deploy my-app \
             --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
             --region europe-west1 \
