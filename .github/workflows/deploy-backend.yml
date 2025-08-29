@@ -2,7 +2,7 @@ name: Backend CD
 
 on:
   push:
-    branches: 
+    branches:
       - main
 
 env:
@@ -14,9 +14,9 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3 
+        uses: actions/checkout@v3
 
-      - name: Set up python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('/backend/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -38,7 +38,7 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
-        with: 
+        with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up gcloud
@@ -55,8 +55,7 @@ jobs:
       - name: Push Docker image
         run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
 
-      - name: Deploy to Cloud Run (without frontend URL)
-        id: deploy-backend
+      - name: Deploy Backend
         run: |
           gcloud run deploy my-app \
             --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
@@ -64,20 +63,34 @@ jobs:
             --platform managed \
             --allow-unauthenticated
 
-      - name: Get Cloud Run URL
+      - name: Get Backend URL
         id: get-backend-url
         run: |
-          echo "BACKEND_URL=$(gcloud run services describe my-app --region europe-west1 --format 'value(status.url)')" >> $GITHUB_ENV
+          BACKEND_URL=$(gcloud run services describe my-app --region europe-west1 --format 'value(status.url)')
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+          echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
 
       - name: Install Vercel CLI
         run: npm install -g vercel@46.1.0
 
-      - name: Deploy Frontend and get URL
-        id: deploy-frontend
+      - name: Set Vercel Env Var and Deploy Frontend
         run: |
-          FRONTEND_JSON=$(vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --confirm --json)
-          FRONTEND_URL=$(echo "$FRONTEND_JSON" | jq -r '.[0].url')
-          echo "FRONTEND_URL=https://$FRONTEND_URL" >> $GITHUB_ENV
+          set -e
+
+          echo "Removing existing VITE_API_URL (if exists)..."
+          vercel env rm VITE_API_URL production --yes --token $VERCEL_TOKEN || true
+
+          echo "Adding new VITE_API_URL..."
+          echo "$BACKEND_URL" | vercel env add VITE_API_URL production --token $VERCEL_TOKEN
+
+          echo "Deploying frontend to production..."
+          vercel --prod --token $VERCEL_TOKEN --confirm
+
+        env:
+          BACKEND_URL: ${{ steps.get-backend-url.outputs.url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Update Backend CORS dynamically
         run: |
@@ -90,9 +103,3 @@ jobs:
             --update-env-vars FRONTEND_URL=$FRONTEND_URL
         env:
           FRONTEND_URL: ${{ env.FRONTEND_URL }}
-
-      - name: Update Vercel API URL
-        run: |
-          echo "Setting VITE_API_URL in Vercel..."
-          vercel env rm VITE_API_URL production --yes --token ${{ secrets.VERCEL_TOKEN }} || true
-          echo "$BACKEND_URL" | vercel env add VITE_API_URL production --token ${{ secrets.VERCEL_TOKEN }}
