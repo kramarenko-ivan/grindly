@@ -75,8 +75,11 @@ jobs:
         run: |
           set -e # Stop at any error
 
-          echo "Updating Vercel variable VITE_API_URL..."
-          vercel env set VITE_API_URL "${{ steps.get-url.outputs.url }}" production --token $VERCEL_TOKEN --debug
+          echo "Removing existing VITE_API_URL (if exists)..."
+          vercel env rm VITE_API_URL production --yes --token $VERCEL_TOKEN || true
+
+          echo "Adding new variable VITE_API_URL..."
+          echo "${{ steps.get-url.outputs.url }}" | vercel env add VITE_API_URL production --token $VERCEL_TOKEN --debug
 
           # Trigger frontend production-build..."
           vercel --prod --token $VERCEL_TOKEN --confirm --debug
