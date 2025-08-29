@@ -21,7 +21,7 @@ frontend_url = os.environ.get(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url],  # dynamic origin
+    allow_origins=[frontend_url, "https://grindly.vercel.app"],  # dynamic origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
