@@ -77,13 +77,16 @@ jobs:
         run: |
           set -e
 
-          # Удаляем старую переменную на фронтенде
+          # Remove old environment variable on frontend
+          echo "Removing old VITE_API_URL..."
           vercel env rm VITE_API_URL production --yes --token $VERCEL_TOKEN || true
 
-          # Добавляем актуальный URL бэкенда
+          # Add updated backend URL as VITE_API_URL
+          echo "Adding updated VITE_API_URL..."
           echo "$BACKEND_URL" | vercel env add VITE_API_URL production --token $VERCEL_TOKEN
 
-          # Деплой фронтенда
+          # Deploy frontend
+          echo "Deploying frontend..."
           FRONTEND_URL=$(vercel --prod --token $VERCEL_TOKEN --confirm --yes | grep "https://" | head -n1)
           echo "FRONTEND_URL=$FRONTEND_URL" >> $GITHUB_ENV
 
