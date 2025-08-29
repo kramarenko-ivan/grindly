@@ -62,3 +62,26 @@ jobs:
             --region europe-west1 \
             --platform managed \
             --allow-unauthenticated
+
+      - name: Get Cloud Run URL
+        id: get-url
+        run: |
+          echo "url=$(gcloud run services describe my-app --region europe-west1 --format 'value(status.url)')" >> $GITHUB_OUTPUT
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@46.1.0
+
+      - name: Set Vercel Env Var and Trigger Deployment
+        run: |
+          set -e # Stop at any error
+
+          echo "Updating Vercel variable VITE_API_URL..."
+          vercel env set VITE_API_URL "${{ steps.get-url.outputs.url }}" production --token $VERCEL_TOKEN --debug
+
+          # Trigger frontend production-build..."
+          vercel --prod --token $VERCEL_TOKEN --confirm --debug
+        
+        env: 
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
