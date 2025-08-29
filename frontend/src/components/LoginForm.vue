@@ -91,7 +91,6 @@ export default defineComponent({
           };
 
           const apiUrl = import.meta.env.VITE_API_URL;
-          console.log('VITE_API_URL:', apiUrl); //check
           const response = await axios.post<TokenResponse>(
             `${apiUrl}/login`,
             qs.stringify(payload),
@@ -123,7 +122,6 @@ export default defineComponent({
           };
 
           const apiUrl = import.meta.env.VITE_API_URL;
-          console.log('VITE_API_URL:', apiUrl); //check
           const response = await axios.post(`${apiUrl}/register`, payload);
           if (response.status === 200) {
             success.value = true;
