@@ -7,6 +7,8 @@ on:
 
 env:
   SERVICE_NAME: my-app
+  REGION: europe-west1
+  ARTIFACT_REPO: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-docker-repo
 
 jobs:
   test-and-deploy:
@@ -46,27 +48,27 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Configure Docker auth
-        run: gcloud auth configure-docker --quiet
+      - name: Configure Docker auth for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: Build Docker image
-        run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA ./backend
+        run: docker build -t ${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${GITHUB_SHA} ./backend
 
       - name: Push Docker image
-        run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA
+        run: docker push ${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${GITHUB_SHA}
 
       - name: Deploy Backend
         run: |
-          gcloud run deploy my-app \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
-            --region europe-west1 \
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${GITHUB_SHA} \
+            --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated
 
       - name: Get Backend URL
         id: get-backend-url
         run: |
-          BACKEND_URL=$(gcloud run services describe my-app --region europe-west1 --format 'value(status.url)')
+          BACKEND_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format 'value(status.url)')
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
           echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
 
@@ -77,19 +79,15 @@ jobs:
         run: |
           set -e
 
-          # Remove old environment variable on frontend
           echo "Removing old VITE_API_URL..."
           vercel env rm VITE_API_URL production --yes --token $VERCEL_TOKEN || true
 
-          # Add updated backend URL as VITE_API_URL
           echo "Adding updated VITE_API_URL..."
           echo "$BACKEND_URL" | vercel env add VITE_API_URL production --token $VERCEL_TOKEN
 
-          # Deploy frontend
           echo "Deploying frontend..."
           FRONTEND_URL=$(vercel --prod --token $VERCEL_TOKEN --confirm --yes | grep "https://" | head -n1)
           echo "FRONTEND_URL=$FRONTEND_URL" >> $GITHUB_ENV
-
         env:
           BACKEND_URL: ${{ steps.get-backend-url.outputs.url }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -101,9 +99,9 @@ jobs:
       - name: Update Backend CORS dynamically
         run: |
           echo "Redeploy backend with FRONTEND_URL for CORS..."
-          gcloud run deploy my-app \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:$GITHUB_SHA \
-            --region europe-west1 \
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${GITHUB_SHA} \
+            --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
             --update-env-vars FRONTEND_URL=$FRONTEND_URL
