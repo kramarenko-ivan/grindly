@@ -8,7 +8,6 @@ on:
 env:
   SERVICE_NAME: my-app
   REGION: europe-west1
-  ARTIFACT_REPO: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-docker-repo
 
 jobs:
   test-and-deploy:
@@ -17,6 +16,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Set ARTIFACT_REPO
+        run: echo "ARTIFACT_REPO=${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-docker-repo" >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v4
