@@ -1,0 +1,70 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - develop
+      - feature/backend/*
+  pull_request:
+    branches:
+      - develop
+
+env:
+  BACKEND_CONTAINER: grindly_backend
+  DB_CONTAINER: grindly_db
+  POSTGRES_DB: grindlydb
+  POSTGRES_USER: grindly
+
+jobs:
+  test-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose --version
+
+      - name: Start services
+        run: |
+          echo "Starting backend and database..."
+          docker-compose -f ./backend/docker-compose.yml up -d
+
+      - name: Wait for Postgres to be ready
+        run: |
+          echo "Waiting for Postgres to initialize..."
+          sleep 10
+
+      - name: Reset database schema
+        run: |
+          echo "Dropping and recreating public schema..."
+          docker exec ${{ env.DB_CONTAINER }} psql -U $POSTGRES_USER -d $POSTGRES_DB -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+      - name: Apply Alembic migrations
+        run: |
+          echo "Applying Alembic migrations..."
+          docker exec ${{ env.BACKEND_CONTAINER }} alembic upgrade head
+
+      - name: Run backend tests
+        run: |
+          echo "Running pytest..."
+          docker exec ${{ env.BACKEND_CONTAINER }} python -m pytest -s app/tests
+
+      - name: Check /openapi.json endpoint
+        run: |
+          echo "Checking /openapi.json..."
+          if docker exec ${{ env.BACKEND_CONTAINER }} curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/openapi.json | grep -q "200"; then
+            echo "✅ openapi.json endpoint is reachable"
+          else
+            echo "❌ openapi.json endpoint is not reachable"
+            exit 1
+          fi
+
+      - name: Tear down services
+        run: |
+          echo "Stopping and removing containers..."
+          docker-compose -f ./backend/docker-compose.yml down -v

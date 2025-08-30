@@ -1,3 +1,5 @@
+.PHONY: clean up
+
 test:
 	.venv\Scripts\activate && python -m pytest -s app/tests
 install:
@@ -10,3 +12,7 @@ migrate:
 	.venv\Scripts\python -m alembic revision --autogenerate -m "init schema"
 upgrade:
 	.venv\Scripts\python -m alembic upgrade head
+clean:
+	docker-compose down --volumes
+up: clean
+	docker-compose up --build
