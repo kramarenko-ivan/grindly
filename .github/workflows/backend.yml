@@ -13,55 +13,41 @@ jobs:
   test-and-run:
     runs-on: ubuntu-latest
 
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build Docker image
+      - name: Set up Docker Compose
         run: |
-          # Build the Docker image for the backend
-          docker build -t grindly-backend ./backend
+          echo "Starting backend + Postgres via docker-compose..."
+          docker-compose -f ./backend/docker-compose.yml up -d
 
-      - name: Run tests, migrations and capture logs
+      - name: Wait for Postgres to be ready
         run: |
-          # Start the container in detached mode
-          docker run -d --name grindly-backend-test --env DATABASE_URL=$DATABASE_URL grindly-backend
+          echo "Waiting for Postgres to start..."
+          sleep 10
 
-          # Wait for uvicorn to start
-          sleep 5
+      - name: Apply Alembic migrations
+        run: |
+          echo "Applying Alembic migrations..."
+          docker exec backend alembic upgrade head
 
-          # Show logs before migrations
-          echo "===== Logs before migrations ====="
-          docker logs grindly-backend-test
+      - name: Run tests
+        run: |
+          echo "Running pytest..."
+          docker exec backend python -m pytest -s app/tests
 
-          # Apply Alembic migrations inside the container
-          echo "===== Applying Alembic migrations ====="
-          docker exec --env PYTHONPATH=/app grindly-backend-test alembic upgrade head || exit 1
-
-          # Show logs after migrations
-          echo "===== Logs after migrations ====="
-          docker logs grindly-backend-test
-
-          # Run pytest inside the container
-          echo "===== Running pytest ====="
-          docker exec grindly-backend-test python -m pytest -s app/tests || exit 1
-
-          # Check if the /openapi.json endpoint is reachable
-          echo "===== Checking /openapi.json endpoint ====="
-          if docker exec grindly-backend-test curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/openapi.json | grep -q "200"; then
+      - name: Check /openapi.json endpoint
+        run: |
+          echo "Checking /openapi.json..."
+          if docker exec backend curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/openapi.json | grep -q "200"; then
             echo "✅ openapi.json endpoint is reachable"
           else
             echo "❌ openapi.json endpoint is not reachable"
             exit 1
           fi
 
-          # Show logs after running tests
-          echo "===== Logs after tests ====="
-          docker logs grindly-backend-test
-
-          # Stop and remove the container
-          docker stop grindly-backend-test
-          docker rm grindly-backend-test
+      - name: Tear down Docker Compose
+        run: |
+          echo "Stopping and removing containers..."
+          docker-compose -f ./backend/docker-compose.yml down -v
