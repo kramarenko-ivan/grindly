@@ -15,13 +15,14 @@ app = FastAPI()
 # Connect instrumentator
 Instrumentator().instrument(app).expose(app)
 
-frontend_url = os.environ.get(
-    "FRONTEND_URL", "http://localhost:5173"
-)  # fallback for local network
+allowed_origins = [
+    os.environ.get("FRONTEND_URL", "http://localhost:5173")
+]  # fallback for local network
+allowed_origins.append("https://grindly.vercel.app")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, "https://grindly.vercel.app"],  # dynamic origin
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

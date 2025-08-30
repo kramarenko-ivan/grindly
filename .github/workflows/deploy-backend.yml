@@ -83,6 +83,14 @@ jobs:
             --platform managed \
             --allow-unauthenticated
 
+      - name: Ensure public access to backend
+        run: |
+          gcloud run services add-iam-policy-binding ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }}
+            --member="allUsers"
+            --role="roles/run.invoker"
+
+
       - name: Get Backend URL
         id: get-backend-url
         run: |
