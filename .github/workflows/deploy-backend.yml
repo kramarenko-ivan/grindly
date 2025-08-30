@@ -81,7 +81,7 @@ jobs:
             --image ${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${GITHUB_SHA} \
             --region ${{ env.REGION }} \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
             --update-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }},DATABASE_DIRECT=${{ secrets.DATABASE_DIRECT }}
 
       - name: Ensure public access to backend
@@ -120,7 +120,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          
+
       - name: Update Backend CORS dynamically
         run: |
           echo "Redeploy backend with FRONTEND_URL for CORS..."
