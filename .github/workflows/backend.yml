@@ -39,7 +39,8 @@ jobs:
       - name: Apply Alembic migrations
         run: |
           echo "Applying Alembic migrations..."
-          docker exec ${{ env.BACKEND_CONTAINER }} alembic -c backend/alembic.ini upgrade head
+          docker exec ${{ env.BACKEND_CONTAINER }} bash -c "cd backend && alembic upgrade head"
+
 
       - name: Run tests
         run: |
