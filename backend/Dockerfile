@@ -13,4 +13,6 @@ COPY . .
 
 EXPOSE 8080
 
+ENV PYTHONPATH=/app
+
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
