@@ -8,7 +8,8 @@ on:
 env:
   SERVICE_NAME: my-app
   REGION: europe-west1
-
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
@@ -39,8 +40,6 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: PYTHONPATH=. pytest
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
