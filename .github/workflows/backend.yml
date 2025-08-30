@@ -9,6 +9,9 @@ on:
     branches:
       - develop
 
+env:
+  BACKEND_CONTAINER: grindly_backend
+
 jobs:
   test-and-run:
     runs-on: ubuntu-latest
@@ -36,17 +39,17 @@ jobs:
       - name: Apply Alembic migrations
         run: |
           echo "Applying Alembic migrations..."
-          docker exec backend alembic upgrade head
+          docker exec ${{ env.BACKEND_CONTAINER }} alembic upgrade head
 
       - name: Run tests
         run: |
           echo "Running pytest..."
-          docker exec backend python -m pytest -s app/tests
+          docker exec ${{ env.BACKEND_CONTAINER }} python -m pytest -s app/tests
 
       - name: Check /openapi.json endpoint
         run: |
           echo "Checking /openapi.json..."
-          if docker exec backend curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/openapi.json | grep -q "200"; then
+          if docker exec ${{ env.BACKEND_CONTAINER }} curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/openapi.json | grep -q "200"; then
             echo "✅ openapi.json endpoint is reachable"
           else
             echo "❌ openapi.json endpoint is not reachable"
